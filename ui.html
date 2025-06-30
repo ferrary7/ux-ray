@@ -1,0 +1,875 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UXRay</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            color: #1e293b;
+            min-height: 100vh;
+            overflow-x: hidden;
+            overflow-y: auto;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            padding: 20px;
+            gap: 20px;
+            max-width: 100%;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(99, 102, 241, 0.15);
+            margin: -2px -2px 0 -2px;
+        }
+
+        .logo {
+            width: 28px;
+            height: 28px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 13px;
+            backdrop-filter: blur(10px);
+        }
+
+        .title {
+            font-size: 18px;
+            font-weight: 700;
+            color: white;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        .api-key-section {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+        }
+
+        .api-key-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #475569;
+            margin-bottom: 8px;
+            display: block;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .api-key-input {
+            width: 100%;
+            padding: 16px 20px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.2s ease;
+            background: #f8fafc;
+            color: #1e293b;
+        }
+
+        .api-key-input:focus {
+            outline: none;
+            border-color: #6366f1;
+            background: white;
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .api-key-input::placeholder {
+            color: #94a3b8;
+        }
+
+        .analysis-type-section {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+        }
+
+        .analysis-type-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #475569;
+            margin-bottom: 12px;
+            display: block;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .radio-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .radio-option {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 16px 20px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 13px;
+            font-weight: 500;
+            background: #f8fafc;
+            color: #64748b;
+            text-align: center;
+        }
+
+        .radio-option:hover {
+            border-color: #6366f1;
+            background: #f1f5f9;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15);
+        }
+
+        .radio-option.selected {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            border-color: #6366f1;
+            color: white;
+            font-weight: 600;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 16px rgba(99, 102, 241, 0.3);
+        }
+
+        .radio-option input {
+            display: none;
+        }
+
+        .analyze-button {
+            width: 100%;
+            padding: 18px 24px;
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 15px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 16px rgba(99, 102, 241, 0.3);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .analyze-button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(99, 102, 241, 0.4);
+        }
+
+        .analyze-button:active:not(:disabled) {
+            transform: translateY(0);
+        }
+
+        .analyze-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .analyze-button.loading {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .analyze-button.loading::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        .results-section {
+            flex: 1;
+            min-height: 400px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+        }
+
+        .score-display {
+            text-align: center;
+            padding: 40px 30px;
+            background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+            border-radius: 16px;
+            margin: 24px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+        }
+
+        .score-number {
+            font-size: 72px;
+            font-weight: 800;
+            color: #1e293b;
+            margin-bottom: 12px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .score-label {
+            font-size: 14px;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+        }
+
+        .score-excellent { color: #059669; }
+        .score-good { color: #0d9488; }
+        .score-average { color: #d97706; }
+        .score-poor { color: #dc2626; }
+
+        /* Ensure content is fully visible */
+        .results-content {
+            padding: 24px;
+            width: 100%;
+        }
+
+        /* Make sure all sections expand naturally */
+        .issues-section, 
+        .suggestions-section, 
+        .recommendations-section, 
+        .analysis-section {
+            margin-bottom: 28px;
+            width: 100%;
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .issues-list, .recommendations-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .issues-list li, .recommendations-list li {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 16px;
+            transition: all 0.2s ease;
+            font-size: 14px;
+            line-height: 1.6;
+            color: #475569;
+            position: relative;
+            padding-left: 60px;
+        }
+
+        .issues-list li::before {
+            content: '⚠️';
+            position: absolute;
+            left: 20px;
+            top: 20px;
+            font-size: 18px;
+        }
+
+        .recommendations-list li::before {
+            content: '💡';
+            position: absolute;
+            left: 20px;
+            top: 20px;
+            font-size: 18px;
+        }
+
+        .issues-list li:hover, .recommendations-list li:hover {
+            border-color: #cbd5e1;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        .analysis-section p {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 24px;
+            font-size: 14px;
+            line-height: 1.7;
+            color: #475569;
+        }
+
+        .error-message {
+            color: #dc2626;
+            background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+            border: 2px solid #fecaca;
+            border-radius: 12px;
+            padding: 16px;
+            font-size: 13px;
+            margin: 16px;
+            font-weight: 500;
+            box-shadow: 0 4px 12px rgba(220, 38, 38, 0.1);
+        }
+
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            padding: 40px 20px;
+            color: #6366f1;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 3px solid #e2e8f0;
+            border-top: 3px solid #6366f1;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 80px 40px;
+            color: #64748b;
+            font-size: 15px;
+        }
+
+        .empty-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 24px;
+            font-size: 32px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+        }
+
+        /* Scrollbar styling for the main body */
+        body::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        body::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 4px;
+        }
+
+        body::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #cbd5e1 0%, #94a3b8 100%);
+            border-radius: 4px;
+        }
+
+        body::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, #94a3b8 0%, #64748b 100%);
+        }
+
+        /* Results section scrollbar styling (in case it gets too long) */
+        .results-section::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .results-section::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 3px;
+        }
+
+        .results-section::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #cbd5e1 0%, #94a3b8 100%);
+            border-radius: 3px;
+        }
+
+        .results-section::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, #94a3b8 0%, #64748b 100%);
+        }
+
+        /* Improved hover effects */
+        * {
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* Glass effect for cards */
+        .api-key-section,
+        .analysis-type-section,
+        .results-section {
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+
+        /* Subtle animations */
+        .api-key-section,
+        .analysis-type-section {
+            animation: slideUp 0.3s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">UX</div>
+            <div class="title">UXRay</div>
+        </div>
+
+        <div class="api-key-section">
+            <label class="api-key-label" for="apiKey">Gemini API Key</label>
+            <input 
+                type="password" 
+                id="apiKey" 
+                class="api-key-input" 
+                placeholder="Enter your Gemini API key..."
+                value=""
+            />
+        </div>
+
+        <div class="analysis-type-section">
+            <label class="analysis-type-label">Analysis Focus</label>
+            <div class="radio-group">
+                <label class="radio-option selected" data-value="general">
+                    <input type="radio" name="analysisType" value="general" checked>
+                    General
+                </label>
+                <label class="radio-option" data-value="accessibility">
+                    <input type="radio" name="analysisType" value="accessibility">
+                    Accessibility
+                </label>
+                <label class="radio-option" data-value="mobile">
+                    <input type="radio" name="analysisType" value="mobile">
+                    Mobile
+                </label>
+                <label class="radio-option" data-value="clarity">
+                    <input type="radio" name="analysisType" value="clarity">
+                    Clarity
+                </label>
+            </div>
+        </div>
+
+        <button id="analyzeButton" class="analyze-button">
+            Analyze Selected Frame
+        </button>
+
+        <div class="results-section" id="resultsSection">
+            <div class="empty-state">
+                <div class="empty-icon">🎯</div>
+                <p>Select a frame in Figma and click "Analyze" to get AI-powered UX insights.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // UXRay UI JavaScript
+        var currentAnalysisResult = null;
+        var apiKeyInput;
+        var analyzeButton;
+        var resultsSection;
+        var radioOptions;
+        
+        // Initialize when DOM is ready
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize DOM elements
+            apiKeyInput = document.getElementById('apiKey');
+            analyzeButton = document.getElementById('analyzeButton');
+            resultsSection = document.getElementById('resultsSection');
+            radioOptions = document.querySelectorAll('.radio-option');
+            
+            // Load saved API key from local storage (if available)
+            try {
+                var savedApiKey = localStorage.getItem('uxray-api-key');
+                if (savedApiKey && apiKeyInput) {
+                    apiKeyInput.value = savedApiKey;
+                }
+            } catch (e) {
+                // LocalStorage not available in plugin environment
+            }
+            
+            // Set up event listeners
+            setupEventListeners();
+        });
+        
+        function setupEventListeners() {
+            // Save API key to local storage when changed (if available)
+            if (apiKeyInput) {
+                apiKeyInput.addEventListener('input', function() {
+                    try {
+                        localStorage.setItem('uxray-api-key', apiKeyInput.value);
+                    } catch (e) {
+                        // localStorage not available in plugin environment, ignore
+                    }
+                });
+            }
+            
+            // Set up analyze button
+            if (analyzeButton) {
+                analyzeButton.addEventListener('click', handleAnalyzeClick);
+            }
+            
+            // Set up radio options
+            if (radioOptions) {
+                for (var i = 0; i < radioOptions.length; i++) {
+                    radioOptions[i].addEventListener('click', function() {
+                        // Remove selected class from all options
+                        for (var j = 0; j < radioOptions.length; j++) {
+                            radioOptions[j].classList.remove('selected');
+                        }
+                        // Add selected class to clicked option
+                        this.classList.add('selected');
+                        
+                        // Also update the radio input
+                        var input = this.querySelector('input[type="radio"]');
+                        if (input) {
+                            input.checked = true;
+                        }
+                    });
+                }
+            }
+        }
+        
+        function handleAnalyzeClick() {
+            var apiKey = apiKeyInput ? apiKeyInput.value.trim() : '';
+            if (!apiKey) {
+                showError('Please enter your Gemini API key');
+                return;
+            }
+            
+            // Get selected analysis type
+            var selectedType = 'general'; // default
+            if (radioOptions) {
+                for (var i = 0; i < radioOptions.length; i++) {
+                    if (radioOptions[i].classList.contains('selected')) {
+                        selectedType = radioOptions[i].getAttribute('data-value');
+                        break;
+                    }
+                }
+            }
+            
+            // Show loading state
+            showLoading();
+            
+            // Send message to plugin code
+            parent.postMessage({
+                pluginMessage: {
+                    type: 'analyze-frame',
+                    apiKey: apiKey,
+                    analysisType: selectedType
+                }
+            }, '*');
+        }
+        
+        function showLoading() {
+            if (analyzeButton) {
+                analyzeButton.disabled = true;
+                analyzeButton.textContent = 'Analyzing...';
+                analyzeButton.classList.add('loading');
+            }
+        }
+        
+        function hideLoading() {
+            if (analyzeButton) {
+                analyzeButton.disabled = false;
+                analyzeButton.textContent = 'Analyze Selected Frame';
+                analyzeButton.classList.remove('loading');
+            }
+        }
+        
+        function showError(message) {
+            hideLoading();
+            if (resultsSection) {
+                resultsSection.style.display = 'block';
+                resultsSection.innerHTML = '<div class="error-message"><strong>Error:</strong> ' + message + '</div>';
+            }
+        }
+        
+        function displayResults(result) {
+            hideLoading();
+            currentAnalysisResult = result;
+            
+            if (!resultsSection) {
+                return;
+            }
+            
+            var html = '<div class="results-content">';
+            
+            // Usability Score
+            if (result.usabilityScore !== undefined) {
+                var scoreClass = result.usabilityScore >= 80 ? 'score-excellent' : 
+                               result.usabilityScore >= 60 ? 'score-good' : 
+                               result.usabilityScore >= 40 ? 'score-average' : 'score-poor';
+                
+                html += '<div class="score-display">';
+                html += '<div class="score-number ' + scoreClass + '">' + result.usabilityScore + '</div>';
+                html += '<div class="score-label">Usability Score</div>';
+                html += '</div>';
+            }
+            
+            // Key Issues
+            if (result.keyIssues && result.keyIssues.length > 0) {
+                html += '<div class="issues-section">';
+                html += '<div class="section-title">🚨 Key Issues</div>';
+                html += '<ul class="issues-list">';
+                for (var i = 0; i < result.keyIssues.length; i++) {
+                    html += '<li>' + result.keyIssues[i] + '</li>';
+                }
+                html += '</ul>';
+                html += '</div>';
+            }
+            
+            // Recommendations
+            if (result.recommendations && result.recommendations.length > 0) {
+                html += '<div class="recommendations-section">';
+                html += '<div class="section-title">💡 Recommendations</div>';
+                html += '<ul class="recommendations-list">';
+                for (var i = 0; i < result.recommendations.length; i++) {
+                    html += '<li>' + result.recommendations[i] + '</li>';
+                }
+                html += '</ul>';
+                html += '</div>';
+            }
+            
+            // Detailed Analysis
+            if (result.detailedAnalysis) {
+                html += '<div class="analysis-section">';
+                html += '<div class="section-title">📊 Detailed Analysis</div>';
+                html += '<p>' + result.detailedAnalysis + '</p>';
+                html += '</div>';
+            }
+            
+            html += '</div>';
+            
+            resultsSection.innerHTML = html;
+            resultsSection.style.display = 'block';
+        }
+        
+        // Listen for messages from the plugin code
+        window.onmessage = function(event) {
+            var message = event.data.pluginMessage;
+            if (!message) return;
+            
+            switch (message.type) {
+                case 'frame-data':
+                    callGeminiAPI(message.data, message.apiKey, message.analysisType);
+                    break;
+                    
+                case 'analysis-complete':
+                    displayResults(message.result);
+                    break;
+                    
+                case 'analysis-error':
+                    showError(message.error);
+                    break;
+                    
+                case 'no-frame-selected':
+                    showError('Please select a frame in Figma first');
+                    break;
+            }
+        };
+        
+        // Call Gemini API with frame data
+        function callGeminiAPI(frameData, apiKey, analysisType) {
+            if (!apiKey) {
+                showError('API key is missing');
+                return;
+            }
+            
+            // Prepare the prompt based on analysis type
+            var prompt = createPrompt(frameData, analysisType);
+            
+            var requestBody = {
+                contents: [{
+                    parts: [{
+                        text: prompt
+                    }]
+                }],
+                generationConfig: {
+                    temperature: 0.7,
+                    topK: 40,
+                    topP: 0.95,
+                    maxOutputTokens: 1024,
+                }
+            };
+            
+            fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' + apiKey, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(requestBody)
+            })
+            .then(function(response) {
+                if (!response.ok) {
+                    throw new Error('API request failed with status ' + response.status);
+                }
+                return response.json();
+            })
+            .then(function(data) {
+                if (data.candidates && data.candidates[0] && data.candidates[0].content) {
+                    var analysisText = data.candidates[0].content.parts[0].text;
+                    var result = parseAnalysisResult(analysisText);
+                    displayResults(result);
+                } else {
+                    throw new Error('Invalid response format from Gemini API');
+                }
+            })
+            .catch(function(error) {
+                showError('Failed to analyze design: ' + error.message);
+            });
+        }
+        
+        // Create prompt for Gemini based on frame data and analysis type
+        function createPrompt(frameData, analysisType) {
+            var prompt = 'As a UX expert, analyze this Figma frame design and provide feedback.\n\n';
+            
+            // Add frame information
+            prompt += 'Frame Details:\n';
+            prompt += '- Name: ' + frameData.name + '\n';
+            prompt += '- Dimensions: ' + frameData.width + 'x' + frameData.height + ' pixels\n';
+            prompt += '- Background: ' + frameData.backgroundColor + '\n';
+            prompt += '- Number of elements: ' + frameData.children.length + '\n';
+            prompt += '- Has images: ' + (frameData.hasImages ? 'Yes' : 'No') + '\n';
+            prompt += '- Component count: ' + frameData.componentCount + '\n';
+            
+            if (frameData.textContent.length > 0) {
+                prompt += '- Text content: ' + frameData.textContent.join(', ') + '\n';
+            }
+            
+            prompt += '\nElement hierarchy:\n';
+            for (var i = 0; i < Math.min(frameData.children.length, 20); i++) {
+                var child = frameData.children[i];
+                prompt += '- ' + child.type + ': ' + child.name + ' (' + child.width + 'x' + child.height + ')\n';
+                if (child.characters) {
+                    prompt += '  Text: "' + child.characters + '"\n';
+                }
+            }
+            
+            // Add analysis type specific instructions
+            prompt += '\nPlease provide:\n';
+            if (analysisType === 'accessibility') {
+                prompt += '1. A usability score out of 100 focusing on accessibility (WCAG compliance, color contrast, keyboard navigation)\n';
+                prompt += '2. Accessibility issues and violations\n';
+                prompt += '3. Recommendations for better accessibility\n';
+            } else if (analysisType === 'mobile') {
+                prompt += '1. A usability score out of 100 focusing on mobile usability (touch targets, responsive design, mobile patterns)\n';
+                prompt += '2. Mobile-specific usability issues\n';
+                prompt += '3. Recommendations for mobile optimization\n';
+            } else if (analysisType === 'clarity') {
+                prompt += '1. A usability score out of 100 focusing on clarity (visual hierarchy, information architecture, content clarity)\n';
+                prompt += '2. Issues with visual clarity and information presentation\n';
+                prompt += '3. Recommendations for improving clarity and readability\n';
+            } else { // general
+                prompt += '1. A usability score out of 100 (evaluate visual hierarchy, spacing, consistency, readability, user flow)\n';
+                prompt += '2. Key usability issues\n';
+                prompt += '3. Specific recommendations for improvement\n';
+                prompt += '4. Detailed analysis of the design\n';
+            }
+            
+            prompt += '\nIMPORTANT: You must respond with valid JSON only. No other text outside the JSON.\n';
+            prompt += 'Format your response exactly as this JSON structure:\n';
+            prompt += '{\n';
+            prompt += '  "usabilityScore": number_between_0_and_100,\n';
+            prompt += '  "keyIssues": ["issue1", "issue2", "issue3"],\n';
+            prompt += '  "recommendations": ["rec1", "rec2", "rec3"],\n';
+            prompt += '  "detailedAnalysis": "detailed text analysis"\n';
+            prompt += '}\n\n';
+            prompt += 'Make sure the usabilityScore is a realistic number between 0-100 based on actual UX analysis.';
+            
+            return prompt;
+        }
+        
+        // Parse the analysis result from Gemini
+        function parseAnalysisResult(analysisText) {
+            try {
+                // Try to extract JSON from the response
+                var jsonMatch = analysisText.match(/\{[\s\S]*\}/);
+                if (jsonMatch) {
+                    var parsed = JSON.parse(jsonMatch[0]);
+                    return parsed;
+                }
+            } catch (e) {
+                // JSON parsing failed, fall back to text parsing
+            }
+            
+            // Fallback parsing if JSON fails
+            var result = {
+                usabilityScore: 75,
+                keyIssues: ['Analysis could not be fully parsed'],
+                recommendations: ['Please try again with a valid API key'],
+                detailedAnalysis: analysisText
+            };
+            
+            // Try to extract score from text in various formats
+            var scoreMatches = [
+                analysisText.match(/["']?usabilityScore["']?\s*:\s*(\d+)/i),
+                analysisText.match(/score[:\s]*(\d+)/i),
+                analysisText.match(/(\d+)(?:\s*\/\s*100|\s*out\s+of\s+100)/i),
+                analysisText.match(/rating[:\s]*(\d+)/i)
+            ];
+            
+            for (var i = 0; i < scoreMatches.length; i++) {
+                if (scoreMatches[i]) {
+                    result.usabilityScore = parseInt(scoreMatches[i][1]);
+                    break;
+                }
+            }
+            
+            return result;
+        }
+    </script>
+</body>
+</html>

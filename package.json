@@ -1,0 +1,34 @@
+{
+  "name": "uxray",
+  "version": "1.0.0",
+  "description": "AI-powered UX analysis plugin for Figma using Google's Gemini API",
+  "main": "dist/code.js",
+  "scripts": {
+    "build": "tsc && cp manifest.json ui.html dist/",
+    "watch": "tsc --watch",
+    "clean": "rm -rf dist/*"
+  },
+  "keywords": [
+    "figma",
+    "plugin",
+    "ux",
+    "design",
+    "ai",
+    "gemini",
+    "analysis"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "devDependencies": {
+    "@figma/plugin-typings": "^1.75.0",
+    "@types/node": "^18.0.0",
+    "typescript": "^5.0.0"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/uxray-figma-plugin.git"
+  }
+}
